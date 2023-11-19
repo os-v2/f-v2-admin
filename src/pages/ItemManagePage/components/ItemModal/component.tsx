@@ -1,132 +1,138 @@
-import * as React from "react";
-import { Button, CommentText, Label, Table, TextArea } from "semantic-ui-react";
+import React, { useEffect, useState } from "react";
+import { Button, CommentText, Dropdown, Label, Table, TextArea } from "semantic-ui-react";
 import ModalComponent from "../../../../components/ModalComponent";
 import styled, { useTheme } from "styled-components";
-import { Controller, FieldValues, useForm } from "react-hook-form";
+import { Controller, FieldValues, FormProvider, useForm } from "react-hook-form";
 import ImageUploader from "../../../../components/ImageUploader";
+import { IModalOpenType } from "../../../../utils/types/modalType";
+import InputComponent from "../../../../components/InputComponent";
+import { ClipLoader } from "react-spinners";
+import DropdownComponent from "../../../../components/DropdownComponent";
+import { IItemMageTypeProps } from "../../../../utils/types/itemManageType";
 
+interface IModalProps {
+  open: IModalOpenType;
+  setOpen: React.Dispatch<React.SetStateAction<IModalOpenType>>;
+}
+const options = [
+  { key: 1, text: "김밥집", value: 1 },
+  { key: 2, text: "파스타집", value: 2 },
+  { key: 3, text: "돈까스집", value: 3 }
+];
+const Componenet = ({ open, setOpen }: IModalProps) => {
 
-const Componenet = () => {
   const themeApp = useTheme();
-  const [data, setData] = React.useState<any>();
-  const [selectedImages, setSelectedImages] = React.useState<Array<string | File>>([]);
-  const { register, handleSubmit, control } = useForm({
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [data, setData] = useState<IItemMageTypeProps>();
+  const [selectedImages, setSelectedImages] = useState<Array<string | File>>([]);
+  const form = useForm({
     mode: "all"
   });
+  const { handleSubmit, control } = form;
   const onSubmit = (data: FieldValues) => {
     console.log(data);
   };
+  useEffect(() => {
+    console.log(data);
+    if (open.isEdit) {
+
+      setIsLoading(true);
+      setTimeout(() => {
+        setData({
+          makersId: 2,
+          calorie: undefined,
+          carbohydrate: undefined,
+          fat: undefined,
+          itemIntro: undefined,
+          itemName: "오일 파스타",
+          price: undefined,
+          protein: undefined,
+          supplyPrice: undefined,
+
+        });
+
+        setIsLoading(false);
+      }, 1000);
+    }
+    else setData(undefined);
+  }, [open]);
   return (
     <ModalComponent
-      title="메이커스 추가"
+      title={!open.isEdit ? "상품 추가" : "상품 수정"}
+      open={open}
+      setOpen={setOpen}
+      loading={isLoading}
       action={
         <Button color="green" type="button" style={{ width: 150 }}>
           추가
         </Button>
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)}>
-
-        <InputLine>
-          <InputBox>
-            <Label>메이커스 이름</Label>
-            <StyleInput {...register("makersName")} />
-          </InputBox>
-          <InputBox>
-            <Label>코드</Label>
-            <StyleInput {...register("code")} />
-          </InputBox>
-          <InputBox>
-            <Label>비밀번호</Label>
-            <StyleInput {...register("password")} />
-          </InputBox>
-        </InputLine>
-        <InputLine>
-          <InputBox>
-            <Label>담당자</Label>
-            <StyleInput {...register("manager")} />
-          </InputBox>
-          <InputBox>
-            <Label>전화번호</Label>
-            <StyleInput {...register("phone")} />
-          </InputBox>
-          <InputBox>
-            <Label>사업자 번호</Label>
-            <StyleInput {...register("businessNumber")} />
-          </InputBox>
-        </InputLine>
-        <InputLine>
-          <InputBox>
-            <Label>계좌은행</Label>
-            <StyleInput {...register("accountBank")} />
-          </InputBox>
-          <InputBox>
-            <Label>계좌명</Label>
-            <StyleInput {...register("accountName")} />
-          </InputBox>
-          <InputBox>
-            <Label>계좌번호</Label>
-            <StyleInput {...register("accountNumber")} />
-          </InputBox>
-        </InputLine>
+      {isLoading && <LoadindFace >
+        <ClipLoader
+          color={themeApp.colors.grey[5]}
+          loading={isLoading}
+          size={80}
+          aria-label="Loading Spinner"
+          data-testid="loader"
+        />
+      </LoadindFace>}
+      <FormProvider {...form}>
         <InputLine>
           <InputBox2>
-            <Label>주소</Label>
-            <StyleInput {...register("address")} />
+            <Label>메이커스</Label>
+            <DropdownComponent
+              name="makersId"
+              search
+              selection
+              clearable
+              placeholder="메이커스 선택"
+              defaultValue={data?.makersId}
+              options={options}
+            />
           </InputBox2>
           <InputBox>
-            <Label>우편번호</Label>
-            <StyleInput {...register("zip")} />
+            <Label>상품명</Label>
+            <InputComponent defaultValue={data?.itemName} placeholder="상품명" type="text" name="itemName" />
+          </InputBox>
+          <InputBox>
+            <Label>판매가</Label>
+            <InputComponent defaultValue={data?.price} placeholder="판매가" type="number" name="price" />
+          </InputBox>
+          <InputBox>
+            <Label>공급가</Label>
+            <InputComponent defaultValue={data?.supplyPrice} placeholder="공급가" type="number" name="supplyPrice" />
           </InputBox>
         </InputLine>
-        <CommentText>요일 별 업무시간</CommentText>
-        <Table definition celled compact>
-          <Table.Header>
-            <Table.Row >
-              <Table.HeaderCell />
-              <Table.HeaderCell>월</Table.HeaderCell>
-              <Table.HeaderCell>화</Table.HeaderCell>
-              <Table.HeaderCell>수</Table.HeaderCell>
-              <Table.HeaderCell>목</Table.HeaderCell>
-              <Table.HeaderCell>금</Table.HeaderCell>
-              <Table.HeaderCell>토</Table.HeaderCell>
-              <Table.HeaderCell>일</Table.HeaderCell>
-            </Table.Row>
-          </Table.Header>
+        <InputLine>
+          <InputBox>
+            <Label>칼로리(kcal)</Label>
+            <InputComponent defaultValue={data?.calorie} placeholder="칼로리" type="number" name="calorie" />
+          </InputBox>
+          <InputBox>
+            <Label>탄수화물(g)</Label>
+            <InputComponent defaultValue={data?.carbohydrate} placeholder="탄수화물" type="number" name="carbohydrate" />
+          </InputBox>
+          <InputBox>
+            <Label>단백질(g)</Label>
+            <InputComponent defaultValue={data?.protein} placeholder="단백질" type="number" name="protein" />
+          </InputBox>
+          <InputBox>
+            <Label>지방(g)</Label>
+            <InputComponent defaultValue={data?.fat} placeholder="지방" type="number" name="fat" />
+          </InputBox>
+        </InputLine>
 
-          <Table.Body>
-            <Table.Row>
-              <Table.Cell style={{ width: 80 }}>시작</Table.Cell>
-              <Table.Cell style={{ width: 80 }}><StyleInput {...register("startMon")} style={{ width: 80 }} /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><StyleInput {...register("startTue")} style={{ width: 80 }} /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><StyleInput {...register("startWed")} style={{ width: 80 }} /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><StyleInput {...register("startThi")} style={{ width: 80 }} /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><StyleInput {...register("startFri")} style={{ width: 80 }} /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><StyleInput {...register("startSat")} style={{ width: 80 }} /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><StyleInput {...register("startSun")} style={{ width: 80 }} /></Table.Cell>
-            </Table.Row>
-            <Table.Row>
-              <Table.Cell style={{ width: 80 }}>마감</Table.Cell>
-              <Table.Cell style={{ width: 80 }}><StyleInput {...register("endMon")} style={{ width: 80 }} /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><StyleInput {...register("endTue")} style={{ width: 80 }} /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><StyleInput {...register("endWed")} style={{ width: 80 }} /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><StyleInput {...register("endThi")} style={{ width: 80 }} /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><StyleInput {...register("endFri")} style={{ width: 80 }} /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><StyleInput {...register("endSat")} style={{ width: 80 }} /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><StyleInput {...register("endSun")} style={{ width: 80 }} /></Table.Cell>
-            </Table.Row>
-          </Table.Body>
-        </Table>
         <ImageUploadBox>
           <ImageUploader
             selectedImages={selectedImages}
             setSelectedImages={setSelectedImages}
-            data={data}
-            setData={setData} />
+            title="상품 이미지 추가" />
         </ImageUploadBox>
-        <CommentText>메이커스 소개</CommentText>
+        <CommentText>상품 소개</CommentText>
         <Controller
-          name="makersIntro"
+          name="itemIntro"
           control={control}
           render={({ field: { onChange, value } }) => {
             return <TextArea rows={5} onChange={onChange} value={value} style={{
@@ -140,12 +146,16 @@ const Componenet = () => {
           }}
         />
         <ButtonContainer>
-          <Button color="green" type="submit" onClick={handleSubmit(onSubmit)}>추가</Button>
+          <Button color="green" type="submit" onClick={handleSubmit(onSubmit)}>{!open.isEdit ? "추가" : "수정"}</Button>
           <div style={{ padding: 24 }}></div>
-          <Button color="youtube">취소</Button>
+          <Button color="youtube" onClick={() => setOpen({
+            id: null,
+            isEdit: false,
+            open: false
+          })}>취소</Button>
         </ButtonContainer>
-      </form>
-    </ModalComponent>
+      </FormProvider>
+    </ModalComponent >
   );
 };
 
@@ -172,12 +182,19 @@ const ButtonContainer = styled.div`
   align-items: center;
   justify-content: center;
 `;
-const StyleInput = styled.input`
-  padding: 10px 12px;
-  border : 1px solid ${({ theme }) => theme.colors.grey[6]};
-  font-size: 14px;
-  border-radius: 4px;
-`;
+
 const ImageUploadBox = styled.div`
   height: 250px;
+`;
+const LoadindFace = styled.div`
+  position: absolute;
+  justify-content: center;
+  align-items: center;
+  background-color: #000000aa;
+  top: 0;
+  left: 0;
+  height: 100%;
+  z-index: 999;
+  right: 0;
+  display: flex;
 `;

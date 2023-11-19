@@ -1,24 +1,40 @@
 import * as React from "react";
 import { Modal } from "semantic-ui-react";
+import { IModalOpenType } from "../../utils/types/modalType";
+import styled, { css } from "styled-components";
 interface IComponentProps {
   title: string;
   children: React.ReactNode;
   action: React.ReactNode;
+  open: IModalOpenType;
+  setOpen: React.Dispatch<React.SetStateAction<IModalOpenType>>;
+  loading?: boolean;
 }
-
-const Component = (props: IComponentProps) => {
-  const [open, setOpen] = React.useState(false);
+interface IModalContentProps {
+  loading: string | undefined;
+}
+const Component = ({ title, children, action, open, setOpen, loading }: IComponentProps) => {
   return (
     <Modal
-      open={open}
-      onClose={() => setOpen(false)}
-      onOpen={() => setOpen(true)}
-      trigger={props.action}>
+      open={open.open}
+      onOpen={() => setOpen({
+        id: open.id,
+        open: true,
+        isEdit: false
+      })}
+      onClose={() => setOpen({
+        id: open.id,
+        open: false,
+        isEdit: false
+      })}
+      trigger={action}>
       <Modal.Header>
-        {props.title}
+        {title}
       </Modal.Header>
       <Modal.Content>
-        {props.children}
+        <ModalContent loading={loading?.toString()}>
+          {children}
+        </ModalContent>
       </Modal.Content>
       <Modal.Actions >
 
@@ -28,3 +44,13 @@ const Component = (props: IComponentProps) => {
 };
 
 export default Component;
+
+const ModalContent = styled.div<IModalContentProps>`
+ ${({ loading }) => {
+    if (loading === "true")
+      return css`
+      height: 70vh;
+      overflow: hidden;
+    `;
+  }}
+`;

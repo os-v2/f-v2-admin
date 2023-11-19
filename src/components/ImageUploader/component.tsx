@@ -8,8 +8,8 @@ import MakersImageModal from "../MakersImageModal";
 interface IImageUploaderProps {
   selectedImages: Array<string | File>;
   setSelectedImages: React.Dispatch<React.SetStateAction<Array<string | File>>>;
-  data: string;
-  setData: React.Dispatch<React.SetStateAction<any[]>>;
+  data?: string;
+  setData?: React.Dispatch<React.SetStateAction<any[]>>;
   title?: string;
 }
 
