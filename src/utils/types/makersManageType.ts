@@ -3,6 +3,7 @@ export interface IMakersMageTypeProps {
   accountName: string;
   accountNumber: string;
   address: string;
+  address2: string;
   businessNumber: string;
   code: string;
   endFri: string;

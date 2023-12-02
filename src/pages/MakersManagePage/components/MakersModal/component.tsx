@@ -36,6 +36,7 @@ const Componenet = ({ open, setOpen }: IModalProps) => {
           accountName: "",
           accountNumber: "",
           address: "",
+          address2: "",
           businessNumber: "123-03-84963",
           code: "",
           endFri: "",
@@ -142,6 +143,12 @@ const Componenet = ({ open, setOpen }: IModalProps) => {
           <InputBox>
             <Label>우편번호</Label>
             <InputComponent defaultValue={data?.zip} placeholder="우편번호" type="text" name="zip" />
+          </InputBox>
+        </InputLine>
+        <InputLine>
+          <InputBox>
+            <Label>상세주소</Label>
+            <InputComponent defaultValue={data?.address2} placeholder="상세주소" type="text" name="address2" />
           </InputBox>
         </InputLine>
         <CommentText>요일 별 업무시간</CommentText>
