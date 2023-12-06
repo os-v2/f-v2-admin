@@ -12,13 +12,35 @@ import { tFoodItemDetail } from "../../apis/foods";
 export default function FoodManagePage() {
 
   const [options, setOption] = useState<DropdownItemProps[]>();
+  const [checked, setChecked] = useState<number[]>([]);
   const [openModal, setOpenModal] = useState<IModalOpenType>({
     id: null,
     open: false,
     isEdit: false
   });
-  const { foodItemList, foodMakersList, foodItemDetail, foodItemDetailRefetch, foodDetailLoading } = useFood(openModal.id);
-
+  const { foodItemList, foodMakersList, foodItemDetail, foodItemDetailRefetch, foodDetailLoading, updateFoodStatus } = useFood(openModal.id);
+  const handleFoodStatusDisalbled = async () => {
+    try {
+      await updateFoodStatus({
+        foodIds: checked,
+        status: false
+      });
+      setChecked([]);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const handleFoodStatusEnalbled = async () => {
+    try {
+      await updateFoodStatus({
+        foodIds: checked,
+        status: true
+      });
+      setChecked([]);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   useEffect(() => {
     setOption(foodMakersList?.map((food) => {
       return {
@@ -37,11 +59,21 @@ export default function FoodManagePage() {
   return <Wrraper>
     <ButtonContainer>
       <FoodModal open={openModal} setOpen={setOpenModal} options={options as DropdownItemProps[]} isLoading={foodDetailLoading} foodItemDetail={foodItemDetail as tFoodItemDetail} />
-      <Button color="youtube" type="button" style={{ width: 150 }} onClick={() => console.log("비활성")}>
+      <Button color="blue" type="button" style={{ width: 150 }} onClick={handleFoodStatusEnalbled}>
+        활성
+      </Button>
+      <Button color="youtube" type="button" style={{ width: 150 }} onClick={handleFoodStatusDisalbled}>
         비활성
       </Button>
     </ButtonContainer>
-    <TableCompoenet data={foodItemList} headerData={foodManageHeader} selectable={true} setOpen={setOpenModal} />
+    <TableCompoenet
+      checked={checked}
+      setChecked={setChecked}
+      data={foodItemList}
+      headerData={foodManageHeader}
+      selectable={true}
+      setOpen={setOpenModal}
+    />
 
   </Wrraper>;
 }

@@ -1,5 +1,5 @@
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {foodsApi, tFoodItemDetail} from "../../apis/foods";
+import {foodsApi, tFoodItemDetail, tFoodStatusType} from "../../apis/foods";
 import instance from "../../utils/instance";
 import {tApiDefault} from "../../utils/types/apiType";
 
@@ -47,6 +47,15 @@ export const useFood = (id: number | null) => {
       });
     },
   });
+  const {mutateAsync: updateFoodStatus} = useMutation({
+    mutationFn: async (params: tFoodStatusType) =>
+      await foodsApi.updateFoodStatus(params),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["food"],
+      });
+    },
+  });
   return {
     foodItemList,
     foodMakersList,
@@ -54,5 +63,6 @@ export const useFood = (id: number | null) => {
     foodItemDetailRefetch,
     foodDetailLoading,
     intertFood,
+    updateFoodStatus,
   };
 };

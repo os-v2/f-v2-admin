@@ -29,12 +29,16 @@ export type tFoodItemDetail = {
   description: string;
   images?: Array<string>;
 };
-
+export type tFoodStatusType = {
+  foodIds: number[];
+  status: boolean;
+};
 interface IFoodsApiProps {
   getFoodItemList: () => Promise<tApiDefault<tFoodsItem[]>>;
   getFoodItemDetail: (id: number) => Promise<tApiDefault<tFoodItemDetail>>;
   getFoodMakersList: () => Promise<tApiDefault<tFoodMakersItem[]>>;
   intertFood: (params: FormData) => Promise<tApiPostDefault>;
+  updateFoodStatus: (params: tFoodStatusType) => Promise<tApiPostDefault>;
 }
 
 export const foodsApi: IFoodsApiProps = {
@@ -47,4 +51,6 @@ export const foodsApi: IFoodsApiProps = {
         "Content-Type": "application/x-www-form-urlencoded",
       },
     }),
+  updateFoodStatus: async (params: tFoodStatusType) =>
+    await instance.patch("/food/status", params),
 };

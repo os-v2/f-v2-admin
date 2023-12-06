@@ -10,10 +10,11 @@ interface ITableTypeProps {
   headerData: IHeaderTypeProps;
   selectable?: boolean;
   setOpen: React.Dispatch<React.SetStateAction<IModalOpenType>>;
+  checked: number[];
+  setChecked: React.Dispatch<React.SetStateAction<number[]>>;
 }
-const Component = ({ data, headerData, selectable = false, setOpen }: ITableTypeProps) => {
+const Component = ({ data, headerData, selectable = false, setOpen, checked, setChecked }: ITableTypeProps) => {
   const keys = Object.keys(headerData);
-  const [checked, setChecked] = useState([]);
   const handleRowClick = (_e: React.MouseEvent<HTMLTableRowElement>, id: number) => {
     if (!selectable)
       return;

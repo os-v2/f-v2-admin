@@ -3,17 +3,18 @@ import {tApiDefault, tApiPostDefault} from "../../utils/types/apiType";
 
 export type tMakersList = {
   id: number;
+  isActive: string;
   storeName: string;
   code: string;
   password: string;
-  phone: string;
-  manager: string;
-  isActive: boolean;
+  address1: string;
+  address2: boolean;
   zipCode: string;
-  address: string;
-  address2: string;
+  manager: string;
+  phone: string;
   [key: string]: string | number | boolean;
 };
+
 export type tMakersDetail = {
   id: number;
   storeName: string;
@@ -34,10 +35,16 @@ export type tMakersDetail = {
   [key: string]: string | number | boolean;
 };
 
+export type tMakersStatus = {
+  makersIds: number[];
+  status: boolean;
+};
+
 interface IMakersApiProps {
   getMakersList: () => Promise<tApiDefault<tMakersList[]>>;
   insertMakers: (params: FormData) => Promise<tApiPostDefault>;
   getMakersDetail: (id: number) => Promise<tApiDefault<tMakersDetail>>;
+  updateMakersStatus: (params: tMakersStatus) => Promise<tApiPostDefault>;
 }
 
 export const makersApi: IMakersApiProps = {
@@ -49,4 +56,6 @@ export const makersApi: IMakersApiProps = {
       },
     }),
   getMakersDetail: async (id: number) => await instance.get(`/makers/${id}`),
+  updateMakersStatus: async (params: tMakersStatus) =>
+    await instance.patch("/makers/status", params),
 };

@@ -1,12 +1,12 @@
 export interface IMakersManageTableProps {
   checked: string;
-  active: boolean | string;
-  makersName: string;
+  isActive: boolean | string;
+  storeName: string;
   code: string;
   password: string;
-  address: string;
+  address1: string;
   address2: string;
-  zip: string;
+  zipCode: string;
   manager: string;
   phone: string;
 }
@@ -15,13 +15,13 @@ export interface IHeaderTypeProps {
 }
 export const makersManageHeader: IHeaderTypeProps = {
   checked: "선택",
-  active: "활성",
-  makersName: "메이커스이름",
+  isActive: "활성",
+  storeName: "메이커스이름",
   code: "코드",
   password: "비밀번호",
-  address: "주소",
+  address1: "주소",
   address2: "상세주소",
-  zip: "우편번호",
+  zipCode: "우편번호",
   manager: "담당자",
   phone: "전화번호",
 };

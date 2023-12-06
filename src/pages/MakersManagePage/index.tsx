@@ -1,15 +1,16 @@
 import TableCompoenet from "../../components/TableCompoenet";
 import styled from "styled-components";
-import { dummyData, makersManageHeader } from "./TableData/makersManageTable";
+import { makersManageHeader } from "./TableData/makersManageTable";
 import { Button } from "semantic-ui-react";
 import MakersModal from "./components/MakersModal";
 import { useEffect, useState } from "react";
 import { IModalOpenType } from "../../utils/types/modalType";
-import { useMakersDetail, useMakersListManage } from "../../hooks/makers";
 import { tMakersDetail } from "../../apis/makers";
+import { useMakers } from "../../hooks/makers";
 
 
 export default function MakersPage() {
+  const [checked, setChecked] = useState<number[]>([]);
   const [openModal, setOpenModal] = useState<IModalOpenType>({
     id: null,
     open: false,
@@ -17,8 +18,31 @@ export default function MakersPage() {
   });
 
   const [data, setData] = useState<tMakersDetail | undefined>();
-  const { makersList } = useMakersListManage();
-  const { makersDetail, detailRefetch, isLoading, isFetching } = useMakersDetail(openModal.id as number);
+
+  const { makersList, makersDetail, detailRefetch, isLoading, isFetching, updateMakersStatus } = useMakers(openModal.id as number);
+  const handleFoodStatusDisalbled = async () => {
+    try {
+      await updateMakersStatus({
+        makersIds: checked,
+        status: false
+      });
+      setChecked([]);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const handleFoodStatusEnalbled = async () => {
+    try {
+      await updateMakersStatus({
+        makersIds: checked,
+        status: true
+      });
+      setChecked([]);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
     if (openModal.id)
       detailRefetch();
@@ -32,11 +56,21 @@ export default function MakersPage() {
     <ButtonContainer>
       <MakersModal makersDetail={data as tMakersDetail} isLoading={isLoading}
         isFetching={isFetching} open={openModal} setOpen={setOpenModal} />
-      <Button color="youtube" type="button" style={{ width: 150 }} onClick={() => console.log("비활성")}>
+      <Button color="blue" type="button" style={{ width: 150 }} onClick={handleFoodStatusEnalbled}>
+        활성
+      </Button>
+      <Button color="youtube" type="button" style={{ width: 150 }} onClick={handleFoodStatusDisalbled}>
         비활성
       </Button>
     </ButtonContainer>
-    <TableCompoenet data={makersList} headerData={makersManageHeader} selectable={true} setOpen={setOpenModal} />
+    <TableCompoenet
+      checked={checked}
+      setChecked={setChecked}
+      data={makersList}
+      headerData={makersManageHeader}
+      selectable={true}
+      setOpen={setOpenModal}
+    />
 
   </Wrraper>;
 }

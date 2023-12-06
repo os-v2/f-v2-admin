@@ -7,8 +7,8 @@ import ImageUploader from "../../../../components/ImageUploader";
 import { IModalOpenType } from "../../../../utils/types/modalType";
 import { ClipLoader } from "react-spinners";
 import InputComponent from "../../../../components/InputComponent";
-import { useInsertMakers } from "../../../../hooks/makers";
 import { tMakersDetail } from "../../../../apis/makers";
+import { useMakers } from "../../../../hooks/makers";
 
 interface IModalProps {
   makersDetail: tMakersDetail;
@@ -20,7 +20,7 @@ interface IModalProps {
 const Componenet = ({ makersDetail, isLoading, isFetching, open, setOpen }: IModalProps) => {
   const themeApp = useTheme();
   const [selectedImages, setSelectedImages] = useState<Array<string | File>>([]);
-  const { insertMakers } = useInsertMakers();
+  const { insertMakers } = useMakers(makersDetail?.id);
   const form = useForm({
     mode: "all",
   });
