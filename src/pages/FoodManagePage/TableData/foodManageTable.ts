@@ -1,4 +1,6 @@
-export interface IItemManageTableProps {
+import {tFoodsItem} from "../../../apis/foods";
+
+export interface IFoodManageTableProps {
   checked: string;
   active: boolean | string;
   image: string;
@@ -10,10 +12,10 @@ export interface IItemManageTableProps {
 export interface IHeaderTypeProps {
   [key: string]: any;
 }
-export const itemManageHeader: IHeaderTypeProps = {
+
+export const foodManageHeader: IHeaderTypeProps = {
   checked: "선택",
-  active: "활성",
-  image: "이미지",
+  isActive: "활성",
   makers: "메이커스",
   name: "상품명",
   price: "판매가",

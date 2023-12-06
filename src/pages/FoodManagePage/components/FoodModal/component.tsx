@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, CommentText, Dropdown, Label, Table, TextArea } from "semantic-ui-react";
+import { Button, CommentText, Dropdown, DropdownItemProps, Label, Table, TextArea } from "semantic-ui-react";
 import ModalComponent from "../../../../components/ModalComponent";
 import styled, { useTheme } from "styled-components";
 import { Controller, FieldValues, FormProvider, useForm } from "react-hook-form";
@@ -9,54 +9,68 @@ import InputComponent from "../../../../components/InputComponent";
 import { ClipLoader } from "react-spinners";
 import DropdownComponent from "../../../../components/DropdownComponent";
 import { IItemMageTypeProps } from "../../../../utils/types/itemManageType";
+import { useFood } from "../../../../hooks/food";
+import { tFoodItemDetail } from "../../../../apis/foods";
 
 interface IModalProps {
   open: IModalOpenType;
   setOpen: React.Dispatch<React.SetStateAction<IModalOpenType>>;
+  options: DropdownItemProps[];
+  foodItemDetail: tFoodItemDetail;
+  isLoading: boolean;
 }
-const options = [
-  { key: 1, text: "김밥집", value: 1 },
-  { key: 2, text: "파스타집", value: 2 },
-  { key: 3, text: "돈까스집", value: 3 }
-];
-const Componenet = ({ open, setOpen }: IModalProps) => {
+
+
+const Componenet = ({ open, setOpen, options, foodItemDetail, isLoading }: IModalProps) => {
 
   const themeApp = useTheme();
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [data, setData] = useState<IItemMageTypeProps>();
   const [selectedImages, setSelectedImages] = useState<Array<string | File>>([]);
+  const { intertFood } = useFood(foodItemDetail?.makersId);
   const form = useForm({
     mode: "all"
   });
   const { handleSubmit, control } = form;
-  const onSubmit = (data: FieldValues) => {
-    console.log(data);
-  };
-  useEffect(() => {
-    console.log(data);
-    if (open.isEdit) {
-
-      setIsLoading(true);
-      setTimeout(() => {
-        setData({
-          makersId: 2,
-          calorie: undefined,
-          carbohydrate: undefined,
-          fat: undefined,
-          itemIntro: undefined,
-          itemName: "오일 파스타",
-          price: undefined,
-          protein: undefined,
-          supplyPrice: undefined,
-
-        });
-
-        setIsLoading(false);
-      }, 1000);
+  const onSubmit = async (filed: FieldValues) => {
+    const formData = new FormData();
+    const data = {
+      "name": filed.name,
+      "price": filed.price,
+      "supplyPrice": filed.supplyPrice,
+      "description": filed.description,
+      "makersId": filed.makersId,
+      "calories": filed.calories,
+      "carbohydrates": filed.carbohydrates,
+      "protein": filed.protein,
+      "fat": filed.fat
+    };
+    const jsonData = new Blob([JSON.stringify(data)], {
+      type: "application/json",
+    });
+    console.log(jsonData);
+    formData.append("requestDto", jsonData);
+    if (selectedImages?.length > 0) {
+      for (let i = 0; i < selectedImages?.length; i++) {
+        if (typeof selectedImages[i] === "object")
+          formData.append("file", selectedImages[i]);
+      }
     }
-    else setData(undefined);
-  }, [open]);
+    for (const key of formData.keys()) {
+      console.log(key, ":", formData.get(key));
+    }
+    try {
+      await intertFood(formData);
+      setOpen({
+        id: open.id,
+        isEdit: false,
+        open: false
+      });
+
+    } catch (error) {
+      console.log(error?.toString());
+    }
+  };
+
   return (
     <ModalComponent
       title={!open.isEdit ? "상품 추가" : "상품 수정"}
@@ -88,39 +102,39 @@ const Componenet = ({ open, setOpen }: IModalProps) => {
               selection
               clearable
               placeholder="메이커스 선택"
-              defaultValue={data?.makersId}
+              defaultValue={open.isEdit ? foodItemDetail?.makersId ?? "" : ""}
               options={options}
             />
           </InputBox2>
           <InputBox>
             <Label>상품명</Label>
-            <InputComponent defaultValue={data?.itemName} placeholder="상품명" type="text" name="itemName" />
+            <InputComponent defaultValue={open.isEdit ? foodItemDetail?.name ?? "" : ""} placeholder="상품명" type="text" name="name" />
           </InputBox>
           <InputBox>
             <Label>판매가</Label>
-            <InputComponent defaultValue={data?.price} placeholder="판매가" type="number" name="price" />
+            <InputComponent defaultValue={open.isEdit ? foodItemDetail?.price ?? "" : ""} placeholder="판매가" type="number" name="price" />
           </InputBox>
           <InputBox>
             <Label>공급가</Label>
-            <InputComponent defaultValue={data?.supplyPrice} placeholder="공급가" type="number" name="supplyPrice" />
+            <InputComponent defaultValue={open.isEdit ? foodItemDetail?.supplyPrice ?? "" : ""} placeholder="공급가" type="number" name="supplyPrice" />
           </InputBox>
         </InputLine>
         <InputLine>
           <InputBox>
             <Label>칼로리(kcal)</Label>
-            <InputComponent defaultValue={data?.calorie} placeholder="칼로리" type="number" name="calorie" />
+            <InputComponent defaultValue={open.isEdit ? foodItemDetail?.calories ?? "" : ""} placeholder="칼로리" type="number" name="calories" />
           </InputBox>
           <InputBox>
             <Label>탄수화물(g)</Label>
-            <InputComponent defaultValue={data?.carbohydrate} placeholder="탄수화물" type="number" name="carbohydrate" />
+            <InputComponent defaultValue={open.isEdit ? foodItemDetail?.carbohydrates ?? "" : ""} placeholder="탄수화물" type="number" name="carbohydrates" />
           </InputBox>
           <InputBox>
             <Label>단백질(g)</Label>
-            <InputComponent defaultValue={data?.protein} placeholder="단백질" type="number" name="protein" />
+            <InputComponent defaultValue={open.isEdit ? foodItemDetail?.protein ?? "" : ""} placeholder="단백질" type="number" name="protein" />
           </InputBox>
           <InputBox>
             <Label>지방(g)</Label>
-            <InputComponent defaultValue={data?.fat} placeholder="지방" type="number" name="fat" />
+            <InputComponent defaultValue={open.isEdit ? foodItemDetail?.fat ?? "" : ""} placeholder="지방" type="number" name="fat" />
           </InputBox>
         </InputLine>
 
@@ -132,8 +146,9 @@ const Componenet = ({ open, setOpen }: IModalProps) => {
         </ImageUploadBox>
         <CommentText>상품 소개</CommentText>
         <Controller
-          name="itemIntro"
+          name="description"
           control={control}
+          defaultValue={open.isEdit ? foodItemDetail?.description ?? "" : ""}
           render={({ field: { onChange, value } }) => {
             return <TextArea rows={5} onChange={onChange} value={value} style={{
               width: "100%",

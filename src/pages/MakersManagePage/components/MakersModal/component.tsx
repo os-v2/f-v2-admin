@@ -1,91 +1,86 @@
-import React, { useEffect, useState } from "react";
-import { Button, CommentText, Label, Table, TextArea } from "semantic-ui-react";
+import React, { useState } from "react";
+import { Button, CommentText, Label, TextArea } from "semantic-ui-react";
 import ModalComponent from "../../../../components/ModalComponent";
 import styled, { useTheme } from "styled-components";
 import { Controller, FieldValues, FormProvider, useForm } from "react-hook-form";
 import ImageUploader from "../../../../components/ImageUploader";
 import { IModalOpenType } from "../../../../utils/types/modalType";
-import { IMakersMageTypeProps } from "../../../../utils/types/makersManageType";
 import { ClipLoader } from "react-spinners";
 import InputComponent from "../../../../components/InputComponent";
+import { useInsertMakers } from "../../../../hooks/makers";
+import { tMakersDetail } from "../../../../apis/makers";
 
 interface IModalProps {
+  makersDetail: tMakersDetail;
+  isLoading: boolean;
+  isFetching: boolean;
   open: IModalOpenType;
   setOpen: React.Dispatch<React.SetStateAction<IModalOpenType>>;
 }
-const Componenet = ({ open, setOpen }: IModalProps) => {
+const Componenet = ({ makersDetail, isLoading, isFetching, open, setOpen }: IModalProps) => {
   const themeApp = useTheme();
-  const [isLoading, setIsLoading] = useState(false);
-  const [data, setData] = useState<IMakersMageTypeProps | undefined>();
   const [selectedImages, setSelectedImages] = useState<Array<string | File>>([]);
+  const { insertMakers } = useInsertMakers();
   const form = useForm({
     mode: "all",
   });
+
   const { handleSubmit, control } = form;
-  const onSubmit = (field: FieldValues) => {
-    console.log(field);
-  };
-  useEffect(() => {
-    console.log(data);
-    if (open.isEdit) {
-
-      setIsLoading(true);
-      setTimeout(() => {
-        setData({
-          accountBank: "",
-          accountName: "",
-          accountNumber: "",
-          address: "",
-          address2: "",
-          businessNumber: "123-03-84963",
-          code: "",
-          endFri: "",
-          endMon: "",
-          endSat: "",
-          endSun: "",
-          endThi: "",
-          endTue: "",
-          endWed: "",
-          makersIntro: "메이거스를 위한 소개입니다.",
-          makersName: "메이커스",
-          manager: "장경태",
-          password: "1234",
-          phone: "010-3643-5850",
-          startFri: "",
-          startMon: "",
-          startSat: "",
-          startSun: "",
-          startThi: "",
-          startTue: "",
-          startWed: "",
-          zip: "15232"
-
-        });
-
-        setIsLoading(false);
-      }, 1000);
-
-
+  const onSubmit = async (field: FieldValues) => {
+    const formData = new FormData();
+    const data = {
+      "storeName": field.storeName,
+      "description": field.description,
+      "address": {
+        "zipCode": field.zipCode.slice(0, 4),
+        "address1": field.address,
+        "address2": field.address2
+      }
+    };
+    const jsonData = new Blob([JSON.stringify(data)], {
+      type: "application/json",
+    });
+    console.log(jsonData);
+    formData.append("requestDto", jsonData);
+    if (selectedImages?.length > 0) {
+      for (let i = 0; i < selectedImages?.length; i++) {
+        if (typeof selectedImages[i] === "object")
+          formData.append("file", selectedImages[i]);
+      }
     }
-    else setData(undefined);
-  }, [open]);
+    for (const key of formData.keys()) {
+      console.log(key, ":", formData.get(key));
+    }
+    try {
+      await insertMakers(formData);
+      setOpen({
+        id: open.id,
+        isEdit: false,
+        open: false
+      });
+
+    } catch (error) {
+      console.log(error?.toString());
+    }
+
+  };
 
   return (
     <ModalComponent
       title={!open.isEdit ? "메이커스 추가" : "메이커스 수정"}
       open={open}
       setOpen={setOpen}
-      loading={isLoading}
+      loading={isLoading || isFetching}
       action={
         <Button color="green" type="button" style={{ width: 150 }}>
           추가
         </Button>
       }
     >
-      {isLoading && <LoadindFace >
+      {isLoading || isFetching && <LoadindFace >
         <ClipLoader
           color={themeApp.colors.grey[5]}
-          loading={isLoading}
+          loading={isLoading || isFetching}
           size={80}
           aria-label="Loading Spinner"
           data-testid="loader"
@@ -95,64 +90,64 @@ const Componenet = ({ open, setOpen }: IModalProps) => {
         <InputLine>
           <InputBox>
             <Label>메이커스 이름</Label>
-            <InputComponent defaultValue={data?.makersName} placeholder="메이커스 이름" type="text" name="makersName" />
+            <InputComponent defaultValue={open.isEdit ? makersDetail?.storeName : ""} placeholder="메이커스 이름" type="text" name="storeName" />
           </InputBox>
           <InputBox>
             <Label>코드</Label>
-            <InputComponent defaultValue={data?.code} placeholder="코드" type="text" name="code" />
+            <InputComponent defaultValue={open.isEdit ? makersDetail?.code : ""} placeholder="코드" type="text" name="code" />
           </InputBox>
           <InputBox>
             <Label>비밀번호</Label>
-            <InputComponent defaultValue={data?.password} placeholder="비밀번호" type="text" name="password" />
+            <InputComponent defaultValue={open.isEdit ? makersDetail?.password : ""} placeholder="비밀번호" type="text" name="password" />
           </InputBox>
         </InputLine>
         <InputLine>
           <InputBox>
             <Label>담당자</Label>
-            <InputComponent defaultValue={data?.manager} placeholder="담당자" type="text" name="manager" />
+            <InputComponent defaultValue={open.isEdit ? makersDetail?.manager : ""} placeholder="담당자" type="text" name="manager" />
           </InputBox>
           <InputBox>
             <Label>전화번호</Label>
-            <InputComponent defaultValue={data?.phone} placeholder="전화번호" type="text" name="phone" />
+            <InputComponent defaultValue={open.isEdit ? makersDetail?.phone : ""} placeholder="전화번호" type="text" name="phone" />
           </InputBox>
           <InputBox>
             <Label>사업자 번호</Label>
-            <InputComponent defaultValue={data?.businessNumber} placeholder="사업자 번호" type="text" name="businessNumber" />
+            <InputComponent defaultValue={open.isEdit ? makersDetail?.companyRegistrationNumber : ""} placeholder="사업자 번호" type="text" name="companyRegistrationNumber" />
             {/* <StyleInput {...register("businessNumber")} value={data ? data.businessNumber : ""} /> */}
           </InputBox>
         </InputLine>
         <InputLine>
           <InputBox>
             <Label>계좌은행</Label>
-            <InputComponent defaultValue={data?.accountBank} placeholder="계좌은행" type="text" name="accountBank" />
+            <InputComponent defaultValue={open.isEdit ? makersDetail?.bank : ""} placeholder="계좌은행" type="text" name="bank" />
           </InputBox>
           <InputBox>
             <Label>계좌명</Label>
-            <InputComponent defaultValue={data?.accountName} placeholder="계좌명" type="text" name="accountName" />
+            <InputComponent defaultValue={open.isEdit ? makersDetail?.depositHolder : ""} placeholder="계좌명" type="text" name="depositHolder" />
           </InputBox>
           <InputBox>
             <Label>계좌번호</Label>
-            <InputComponent defaultValue={data?.accountNumber} placeholder="계좌번호" type="text" name="accountNumber" />
+            <InputComponent defaultValue={open.isEdit ? makersDetail?.accountNumber : ""} placeholder="계좌번호" type="text" name="accountNumber" />
           </InputBox>
         </InputLine>
         <InputLine>
           <InputBox2>
             <Label>주소</Label>
-            <InputComponent defaultValue={data?.address} placeholder="주소" type="text" name="address" />
+            <InputComponent defaultValue={open.isEdit ? makersDetail?.address : ""} placeholder="주소" type="text" name="address" />
           </InputBox2>
           <InputBox>
             <Label>우편번호</Label>
-            <InputComponent defaultValue={data?.zip} placeholder="우편번호" type="text" name="zip" />
+            <InputComponent defaultValue={open.isEdit ? makersDetail?.zipCode : ""} placeholder="우편번호" type="text" name="zipCode" />
           </InputBox>
         </InputLine>
         <InputLine>
           <InputBox>
             <Label>상세주소</Label>
-            <InputComponent defaultValue={data?.address2} placeholder="상세주소" type="text" name="address2" />
+            <InputComponent defaultValue={open.isEdit ? makersDetail?.address2 : ""} placeholder="상세주소" type="text" name="address2" />
           </InputBox>
         </InputLine>
-        <CommentText>요일 별 업무시간</CommentText>
-        <Table definition celled compact>
+        {/* <CommentText>요일 별 업무시간</CommentText> */}
+        {/* <Table definition celled compact>
           <Table.Header>
             <Table.Row >
               <Table.HeaderCell />
@@ -168,26 +163,26 @@ const Componenet = ({ open, setOpen }: IModalProps) => {
           <Table.Body>
             <Table.Row>
               <Table.Cell style={{ width: 80 }}>시작</Table.Cell>
-              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={data?.startMon} type="text" name="startMon" /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={data?.startTue} type="text" name="startTue" /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={data?.startWed} type="text" name="startWed" /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={data?.startThi} type="text" name="startThi" /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={data?.startFri} type="text" name="startFri" /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={data?.startSat} type="text" name="startSat" /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={data?.startSun} type="text" name="startSun" /></Table.Cell>
+              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={open.isEdit ? data?.startMon} type="text" name="startMon" /></Table.Cell>
+              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={open.isEdit ? data?.startTue} type="text" name="startTue" /></Table.Cell>
+              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={open.isEdit ? data?.startWed} type="text" name="startWed" /></Table.Cell>
+              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={open.isEdit ? data?.startThi} type="text" name="startThi" /></Table.Cell>
+              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={open.isEdit ? data?.startFri} type="text" name="startFri" /></Table.Cell>
+              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={open.isEdit ? data?.startSat} type="text" name="startSat" /></Table.Cell>
+              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={open.isEdit ? data?.startSun} type="text" name="startSun" /></Table.Cell>
             </Table.Row>
             <Table.Row>
               <Table.Cell style={{ width: 80 }}>마감</Table.Cell>
-              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={data?.endMon} type="text" name="endMon" /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={data?.endTue} type="text" name="endTue" /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={data?.endWed} type="text" name="endWed" /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={data?.endThi} type="text" name="endThi" /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={data?.endFri} type="text" name="endFri" /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={data?.endSat} type="text" name="endSat" /></Table.Cell>
-              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={data?.endSun} type="text" name="endSun" /></Table.Cell>
+              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={open.isEdit ? data?.endMon} type="text" name="endMon" /></Table.Cell>
+              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={open.isEdit ? data?.endTue} type="text" name="endTue" /></Table.Cell>
+              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={open.isEdit ? data?.endWed} type="text" name="endWed" /></Table.Cell>
+              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={open.isEdit ? data?.endThi} type="text" name="endThi" /></Table.Cell>
+              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={open.isEdit ? data?.endFri} type="text" name="endFri" /></Table.Cell>
+              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={open.isEdit ? data?.endSat} type="text" name="endSat" /></Table.Cell>
+              <Table.Cell style={{ width: 80 }}><InputComponent defaultValue={open.isEdit ? data?.endSun} type="text" name="endSun" /></Table.Cell>
             </Table.Row>
           </Table.Body>
-        </Table>
+        </Table> */}
         <ImageUploadBox>
           <ImageUploader
             selectedImages={selectedImages}
@@ -195,10 +190,10 @@ const Componenet = ({ open, setOpen }: IModalProps) => {
         </ImageUploadBox>
         <CommentText>메이커스 소개</CommentText>
         <Controller
-          name="makersIntro"
+          name="description"
           control={control}
           render={({ field: { onChange } }) => {
-            return <TextArea rows={5} onChange={onChange} defaultValue={data?.makersIntro} placeholder={"메이커스 소개"} style={{
+            return <TextArea rows={5} onChange={onChange} defaultValue={open.isEdit ? makersDetail?.description : ""} placeholder={"메이커스 소개"} style={{
               width: "100%",
               resize: "none",
               fontSize: 14,
