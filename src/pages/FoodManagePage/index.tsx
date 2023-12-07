@@ -30,6 +30,8 @@ export default function FoodManagePage() {
       console.log(error);
     }
   };
+
+  const [selectedImages, setSelectedImages] = useState<Array<string | File>>([]);
   const handleFoodStatusEnalbled = async () => {
     try {
       await updateFoodStatus({
@@ -55,10 +57,20 @@ export default function FoodManagePage() {
       console.log(foodItemDetail);
       foodItemDetailRefetch();
     }
-  }, [openModal.id]);
+    if (!openModal.open)
+      setSelectedImages([]);
+  }, [openModal.id, openModal.open]);
   return <Wrraper>
     <ButtonContainer>
-      <FoodModal open={openModal} setOpen={setOpenModal} options={options as DropdownItemProps[]} isLoading={foodDetailLoading} foodItemDetail={foodItemDetail as tFoodItemDetail} />
+      <FoodModal
+        open={openModal}
+        setOpen={setOpenModal}
+        selectedImages={selectedImages}
+        setSelectedImages={setSelectedImages}
+        options={options as DropdownItemProps[]}
+        isLoading={foodDetailLoading}
+        foodItemDetail={foodItemDetail as tFoodItemDetail}
+      />
       <Button color="blue" type="button" style={{ width: 150 }} onClick={handleFoodStatusEnalbled}>
         활성
       </Button>

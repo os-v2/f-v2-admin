@@ -17,6 +17,7 @@ export default function MakersPage() {
     isEdit: false
   });
 
+  const [selectedImages, setSelectedImages] = useState<Array<string | File>>([]);
   const [data, setData] = useState<tMakersDetail | undefined>();
 
   const { makersList, makersDetail, detailRefetch, isLoading, isFetching, updateMakersStatus } = useMakers(openModal.id as number);
@@ -46,7 +47,11 @@ export default function MakersPage() {
   useEffect(() => {
     if (openModal.id)
       detailRefetch();
-    if (!openModal.open) setData(undefined);
+    if (!openModal.open) {
+      setData(undefined);
+      setSelectedImages([]);
+    }
+
   }, [openModal.id, openModal.open]);
   useEffect(() => {
     console.log(makersDetail);
@@ -55,6 +60,7 @@ export default function MakersPage() {
   return <Wrraper>
     <ButtonContainer>
       <MakersModal makersDetail={data as tMakersDetail} isLoading={isLoading}
+        selectedImages={selectedImages} setSelectedImages={setSelectedImages}
         isFetching={isFetching} open={openModal} setOpen={setOpenModal} />
       <Button color="blue" type="button" style={{ width: 150 }} onClick={handleFoodStatusEnalbled}>
         활성

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { SetStateAction, useEffect, useState } from "react";
 import { Button, CommentText, Label, TextArea } from "semantic-ui-react";
 import ModalComponent from "../../../../components/ModalComponent";
 import styled, { useTheme } from "styled-components";
@@ -14,12 +14,15 @@ interface IModalProps {
   makersDetail: tMakersDetail;
   isLoading: boolean;
   isFetching: boolean;
+  selectedImages: Array<string | File>;
+  setSelectedImages: React.Dispatch<SetStateAction<Array<string | File>>>
+
   open: IModalOpenType;
   setOpen: React.Dispatch<React.SetStateAction<IModalOpenType>>;
 }
-const Componenet = ({ makersDetail, isLoading, isFetching, open, setOpen }: IModalProps) => {
+const Componenet = ({ makersDetail, isLoading, isFetching, open, setOpen, selectedImages,
+  setSelectedImages, }: IModalProps) => {
   const themeApp = useTheme();
-  const [selectedImages, setSelectedImages] = useState<Array<string | File>>([]);
   const { insertMakers } = useMakers(makersDetail?.id);
   const form = useForm({
     mode: "all",

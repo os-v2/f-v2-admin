@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { SetStateAction, useEffect, useState } from "react";
 import { Button, CommentText, Dropdown, DropdownItemProps, Label, Table, TextArea } from "semantic-ui-react";
 import ModalComponent from "../../../../components/ModalComponent";
 import styled, { useTheme } from "styled-components";
@@ -15,17 +15,25 @@ import { tFoodItemDetail } from "../../../../apis/foods";
 interface IModalProps {
   open: IModalOpenType;
   setOpen: React.Dispatch<React.SetStateAction<IModalOpenType>>;
+  selectedImages: Array<string | File>;
+  setSelectedImages: React.Dispatch<SetStateAction<Array<string | File>>>
   options: DropdownItemProps[];
   foodItemDetail: tFoodItemDetail;
   isLoading: boolean;
 }
 
 
-const Componenet = ({ open, setOpen, options, foodItemDetail, isLoading }: IModalProps) => {
+const Componenet = ({
+  open,
+  setOpen,
+  selectedImages,
+  setSelectedImages,
+  options,
+  foodItemDetail,
+  isLoading }: IModalProps) => {
 
   const themeApp = useTheme();
 
-  const [selectedImages, setSelectedImages] = useState<Array<string | File>>([]);
   const { intertFood } = useFood(foodItemDetail?.makersId);
   const form = useForm({
     mode: "all"
@@ -65,12 +73,14 @@ const Componenet = ({ open, setOpen, options, foodItemDetail, isLoading }: IModa
         isEdit: false,
         open: false
       });
-
+      setSelectedImages([]);
     } catch (error) {
       console.log(error?.toString());
     }
   };
-
+  useEffect(() => {
+    setSelectedImages([]);
+  }, [open]);
   return (
     <ModalComponent
       title={!open.isEdit ? "상품 추가" : "상품 수정"}
